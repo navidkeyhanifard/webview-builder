@@ -28,10 +28,6 @@ on:
         description: 'لینک اسپلش اسکرین'
         required: false
         type: string
-      firebase_server_key:
-        description: 'کد سرور فایربیس'
-        required: false
-        type: string
       open_links_externally:
         description: 'باز شدن لینک‌های خارجی'
         required: true
