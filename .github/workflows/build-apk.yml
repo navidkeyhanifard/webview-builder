@@ -75,6 +75,15 @@ jobs:
         # جایگزینی آدرس سایت
         sed -i 's|https://www.example.com|${{ github.event.inputs.website_url }}|g' android-template/app/src/main/java/com/example/webviewapp/MainActivity.kt
     
+    - name: تنظیم مجدد gradle.properties
+      run: |
+        cat > android-template/gradle.properties << EOF
+        android.useAndroidX=true
+        android.enableJetifier=true
+        org.gradle.jvmargs=-Xmx2048m
+        EOF
+        cat android-template/gradle.properties
+    
     - name: دانلود و تنظیم آیکون
       if: github.event.inputs.icon_url != ''
       run: |
@@ -96,18 +105,12 @@ jobs:
         mkdir -p android-template/app/src/main/res/drawable
         curl -L "${{ github.event.inputs.splash_url }}" -o android-template/app/src/main/res/drawable/splash.png
     
-    - name: تنظیم فایربیس (در صورت وجود کد)
-      if: github.event.inputs.firebase_server_key != ''
-      run: |
-        echo "کد فایربیس دریافت شد - در نسخه بعدی پیاده‌سازی می‌شود"
-        # در آینده فایل google-services.json ساخته می‌شود
-    
     - name: ساخت APK
       working-directory: android-template
       run: |
         echo "sdk.dir=$ANDROID_HOME" > local.properties
         chmod +x gradlew
-        ./gradlew assembleDebug --no-daemon
+        ./gradlew assembleDebug --no-daemon --stacktrace
     
     - name: آپلود APK
       uses: actions/upload-artifact@v4
