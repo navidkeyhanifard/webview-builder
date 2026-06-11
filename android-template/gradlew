@@ -1,4 +1,7 @@
 #!/bin/sh
-# Gradle wrapper script
-JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+# Download gradle-wrapper.jar if missing
+if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
+    mkdir -p gradle/wrapper
+    curl -L -o gradle/wrapper/gradle-wrapper.jar https://github.com/gradle/gradle/raw/v8.4.0/gradle/wrapper/gradle-wrapper.jar
+fi
 exec java -cp "gradle/wrapper/gradle-wrapper.jar" org.gradle.wrapper.GradleWrapperMain "$@"
