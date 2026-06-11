@@ -1,0 +1,117 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_name:
+        description: 'نام اپلیکیشن'
+        required: true
+        type: string
+      version:
+        description: 'نسخه'
+        required: true
+        default: '1.0'
+        type: string
+      package_name:
+        description: 'پکیج نیم'
+        required: true
+        type: string
+      website_url:
+        description: 'آدرس سایت'
+        required: true
+        type: string
+      icon_url:
+        description: 'لینک آیکون (PNG)'
+        required: false
+        type: string
+      splash_url:
+        description: 'لینک اسپلش اسکرین'
+        required: false
+        type: string
+      firebase_server_key:
+        description: 'کد سرور فایربیس'
+        required: false
+        type: string
+      open_links_externally:
+        description: 'باز شدن لینک‌های خارجی'
+        required: true
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: دریافت کد
+      uses: actions/checkout@v4
+    
+    - name: نصب JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    
+    - name: نصب Android SDK
+      uses: android-actions/setup-android@v3
+    
+    - name: جایگزینی مقادیر در قالب
+      run: |
+        # جایگزینی پکیج نیم
+        find android-template -type f -exec sed -i 's/PACKAGE_NAME/${{ github.event.inputs.package_name }}/g' {} \;
+        
+        # جایگزینی نام اپ
+        find android-template -type f -exec sed -i 's/APP_NAME/${{ github.event.inputs.app_name }}/g' {} \;
+        
+        # جایگزینی نسخه
+        find android-template -type f -exec sed -i 's/VERSION_NAME/${{ github.event.inputs.version }}/g' {} \;
+        
+        # جایگزینی تنظیم باز شدن لینک‌ها
+        find android-template -type f -exec sed -i 's/OPEN_EXTERNALLY_FLAG/${{ github.event.inputs.open_links_externally }}/g' {} \;
+        
+        # جایگزینی آدرس سایت
+        sed -i 's|https://www.example.com|${{ github.event.inputs.website_url }}|g' android-template/app/src/main/java/com/example/webviewapp/MainActivity.kt
+    
+    - name: دانلود و تنظیم آیکون
+      if: github.event.inputs.icon_url != ''
+      run: |
+        mkdir -p android-template/app/src/main/res/mipmap-hdpi
+        mkdir -p android-template/app/src/main/res/mipmap-mdpi
+        mkdir -p android-template/app/src/main/res/mipmap-xhdpi
+        mkdir -p android-template/app/src/main/res/mipmap-xxhdpi
+        mkdir -p android-template/app/src/main/res/mipmap-xxxhdpi
+        curl -L "${{ github.event.inputs.icon_url }}" -o icon.png
+        cp icon.png android-template/app/src/main/res/mipmap-hdpi/ic_launcher.png
+        cp icon.png android-template/app/src/main/res/mipmap-mdpi/ic_launcher.png
+        cp icon.png android-template/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+        cp icon.png android-template/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+        cp icon.png android-template/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+    
+    - name: دانلود و تنظیم اسپلش
+      if: github.event.inputs.splash_url != ''
+      run: |
+        mkdir -p android-template/app/src/main/res/drawable
+        curl -L "${{ github.event.inputs.splash_url }}" -o android-template/app/src/main/res/drawable/splash.png
+    
+    - name: تنظیم فایربیس (در صورت وجود کد)
+      if: github.event.inputs.firebase_server_key != ''
+      run: |
+        echo "کد فایربیس دریافت شد - در نسخه بعدی پیاده‌سازی می‌شود"
+        # در آینده فایل google-services.json ساخته می‌شود
+    
+    - name: ساخت APK
+      working-directory: android-template
+      run: |
+        echo "sdk.dir=$ANDROID_HOME" > local.properties
+        chmod +x gradlew
+        ./gradlew assembleDebug --no-daemon
+    
+    - name: آپلود APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ github.event.inputs.app_name }}-v${{ github.event.inputs.version }}
+        path: android-template/app/build/outputs/apk/debug/*.apk
+        retention-days: 7

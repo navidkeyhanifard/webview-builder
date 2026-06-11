@@ -1,0 +1,29 @@
+{
+  "name": "webview-builder-api",
+  "version": "1.0.0",
+  "description": "Web API for building Android WebView apps with Firebase notifications",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "android",
+    "webview",
+    "firebase",
+    "apk-builder",
+    "github-actions"
+  ],
+  "author": "Navid Keyhanifard",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.17.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
