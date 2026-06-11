@@ -1,2 +1,2 @@
-@rem Gradle wrapper batch script
+@rem Gradle wrapper
 @java -cp "gradle/wrapper/gradle-wrapper.jar" org.gradle.wrapper.GradleWrapperMain %*
